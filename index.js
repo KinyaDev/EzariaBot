@@ -16,8 +16,6 @@ const {
   Client,
   SlashCommandBuilder,
   ActivityType,
-  CommandInteraction,
-  GuildChannel,
 } = require("discord.js");
 
 const bot = new Client({
@@ -54,12 +52,6 @@ bot.on("interactionCreate", async (interaction) => {
           ],
         });
       }
-    }
-
-    function childOv(bool, chs) {
-      chs.forEach((ch) => {
-        ov(bool, ch);
-      });
     }
 
     let role = await interaction.guild.roles.fetch("1091738601835986954");
