@@ -23,6 +23,6 @@
   "homepage": "https://github.com/KinyaDev/EzariaBot#readme",
   "description": "",
   "engines": {
-    "node": "18.x"
+    "node": "12.x"
   }
 }
