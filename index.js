@@ -9,6 +9,7 @@ const hrpChannels = [
 ];
 
 const TOKEN = process.env.TOKEN.toString();
+console.log(TOKEN);
 
 const {
   REST,
