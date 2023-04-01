@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv").config({ encoding: "" });
 
 const hrpChannels = [
   "1042757971895128105",
