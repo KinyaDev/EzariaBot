@@ -10,7 +10,13 @@ const hrpChannels = [
 
 const TOKEN = process.env.TOKEN;
 
-const { REST, Routes, Client, SlashCommandBuilder } = require("discord.js");
+const {
+  REST,
+  Routes,
+  Client,
+  SlashCommandBuilder,
+  ActivityType,
+} = require("discord.js");
 
 const bot = new Client({
   intents: [
@@ -90,6 +96,11 @@ bot.on("interactionCreate", async (interaction) => {
 });
 
 bot.on("ready", async () => {
+  bot.user.setActivity({
+    name: "Je vous fais voyager dans Ezaria!",
+    type: ActivityType.Listening,
+  });
+
   let command = new SlashCommandBuilder()
     .setName("see")
     .setDescription("Get access to a category using its name")
