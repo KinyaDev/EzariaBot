@@ -16,6 +16,7 @@ const {
   Client,
   SlashCommandBuilder,
   ActivityType,
+  CommandInteraction,
 } = require("discord.js");
 
 const bot = new Client({
@@ -30,13 +31,26 @@ const bot = new Client({
 
 const guildID = "1042757971895128104";
 
+/**
+ *
+ * @param {*} channels
+ * @param {*} name
+ * @param {CommandInteraction} interaction
+ */
 function switche(channels, name, interaction) {
   let ch = channels.find((c) => c.name.toLowerCase() === name.toLowerCase());
+  let charname = interaction.options.get("charname");
 
   let notIt = channels.filter((c) => c.id !== ch.id);
 
   if (ch) {
-    interaction.reply(`Vous voyagez vers <#${ch.id}>`);
+    if (!charname) {
+      interaction.channel.send(
+        `${interaction.member.user} voyages vers <#${ch.id}>`
+      );
+    } else {
+      interaction.channel.send(`${charname.value} voyages vers <#${ch.id}>`);
+    }
 
     ch.edit({
       permissionOverwrites: [{ id: interaction.member, allow: "ViewChannel" }],
@@ -68,7 +82,7 @@ function switche(channels, name, interaction) {
       }
     });
   } else {
-    interaction.reply("Salon introuvable");
+    interaction.reply({ content: "Salon introuvable", flags: ["Ephemeral"] });
   }
 }
 
@@ -119,10 +133,15 @@ bot.on("ready", async () => {
           { value: "Jungle", name: "Jungle" },
           { value: "Désert", name: "Désert" },
           { value: "Zone Gelée", name: "Zone Gelée" },
-          { value: "Dimensions", name: "Dimensions" },
           { value: "Aléatoire", name: "Aléatoire" }
         )
         .setRequired(true)
+    )
+    .addStringOption((option) =>
+      option
+        .setDescription("Character Name")
+        .setName("charname")
+        .setRequired(false)
     );
 
   const rest = new REST({ version: "10" }).setToken(TOKEN);
