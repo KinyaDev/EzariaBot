@@ -43,6 +43,7 @@ function switche(channels, name, interaction) {
 
   let notIt = channels.filter((c) => c.id !== ch.id);
 
+  // Hewwo
   if (ch) {
     if (!charname) {
       interaction.channel.send(
