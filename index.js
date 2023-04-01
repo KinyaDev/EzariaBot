@@ -89,23 +89,30 @@ function switche(channels, name, interaction) {
 
 bot.on("interactionCreate", async (interaction) => {
   if (interaction.isChatInputCommand()) {
-    if (interaction.commandName === "see") {
-      let channels = bot.guilds.cache
-        .get(guildID)
-        .channels.cache.filter((h) => !hrpChannels.includes(h.id))
-        .filter((h) => !h.parent);
+    if (interaction.member.roles.cache.get("1091738601835986954")) {
+      if (interaction.commandName === "see") {
+        let channels = bot.guilds.cache
+          .get(guildID)
+          .channels.cache.filter((h) => !hrpChannels.includes(h.id))
+          .filter((h) => !h.parent);
 
-      let name = interaction.options.get("category", true).value;
+        let name = interaction.options.get("category", true).value;
 
-      if (name.toLowerCase() === "Aléatoire".toLowerCase()) {
-        switche(
-          channels,
-          channels.at([Math.floor(Math.random() * channels.size)]).name,
-          interaction
-        );
-      } else {
-        switche(channels, name, interaction);
+        if (name.toLowerCase() === "Aléatoire".toLowerCase()) {
+          switche(
+            channels,
+            channels.at([Math.floor(Math.random() * channels.size)]).name,
+            interaction
+          );
+        } else {
+          switche(channels, name, interaction);
+        }
       }
+    } else {
+      interaction.reply({
+        content: "Tu n'es pas vérifié pour faire cela!",
+        flags: ["Ephemeral"],
+      });
     }
   }
 });
