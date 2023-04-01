@@ -8,7 +8,7 @@ const hrpChannels = [
   "1049295564690432050",
 ];
 
-const TOKEN = process.env.TOKEN.toString();
+const TOKEN = process.env.TOKEN;
 console.log(TOKEN);
 
 const {
