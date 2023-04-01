@@ -24,6 +24,48 @@ const bot = new Client({
 
 const guildID = "1042757971895128104";
 
+function switche(channels, name, interaction) {
+  let ch = channels.find((c) => c.name.toLowerCase() === name.toLowerCase());
+
+  let notIt = channels.filter((c) => c.id !== ch.id);
+
+  if (ch) {
+    interaction.reply(`Vous voyagez vers <#${ch.id}>`);
+
+    ch.edit({
+      permissionOverwrites: [{ id: interaction.member, allow: "ViewChannel" }],
+    });
+
+    if (!ch.parent) {
+      ch.children.cache.forEach((ch) => {
+        ch.edit({
+          permissionOverwrites: [
+            { id: interaction.member, allow: "ViewChannel" },
+          ],
+        });
+      });
+    }
+
+    notIt.forEach((ch) => {
+      ch.edit({
+        permissionOverwrites: [{ id: interaction.member, deny: "ViewChannel" }],
+      });
+
+      if (!ch.parent) {
+        ch.children.cache.forEach((ch) => {
+          ch.edit({
+            permissionOverwrites: [
+              { id: interaction.member, deny: "ViewChannel" },
+            ],
+          });
+        });
+      }
+    });
+  } else {
+    interaction.reply("Salon introuvable");
+  }
+}
+
 bot.on("interactionCreate", async (interaction) => {
   if (interaction.isChatInputCommand()) {
     if (interaction.commandName === "see") {
@@ -33,50 +75,15 @@ bot.on("interactionCreate", async (interaction) => {
         .filter((h) => !h.parent);
 
       let name = interaction.options.get("category", true).value;
-      let ch = channels.find(
-        (c) => c.name.toLowerCase() === name.toLowerCase()
-      );
 
-      let notIt = channels.filter((c) => c.id !== ch.id);
-
-      if (ch) {
-        interaction.reply(`Vous voyagez vers <#${ch.id}>`);
-
-        ch.edit({
-          permissionOverwrites: [
-            { id: interaction.member, allow: "ViewChannel" },
-          ],
-        });
-
-        if (!ch.parent) {
-          ch.children.cache.forEach((ch) => {
-            ch.edit({
-              permissionOverwrites: [
-                { id: interaction.member, allow: "ViewChannel" },
-              ],
-            });
-          });
-        }
-
-        notIt.forEach((ch) => {
-          ch.edit({
-            permissionOverwrites: [
-              { id: interaction.member, deny: "ViewChannel" },
-            ],
-          });
-
-          if (!ch.parent) {
-            ch.children.cache.forEach((ch) => {
-              ch.edit({
-                permissionOverwrites: [
-                  { id: interaction.member, deny: "ViewChannel" },
-                ],
-              });
-            });
-          }
-        });
+      if (name.toLowerCase() === "Aléatoire".toLowerCase()) {
+        switche(
+          channels,
+          channels.at([Math.floor(Math.random() * channels.size)]).name,
+          interaction
+        );
       } else {
-        interaction.reply("Salon introuvable");
+        switche(channels, name, interaction);
       }
     }
   }
