@@ -17,6 +17,7 @@ const {
   SlashCommandBuilder,
   ActivityType,
   CommandInteraction,
+  GuildChannel,
 } = require("discord.js");
 
 const bot = new Client({
@@ -31,69 +32,43 @@ const bot = new Client({
 
 const guildID = "1042757971895128104";
 
-/**
- *
- * @param {*} channels
- * @param {*} name
- * @param {CommandInteraction} interaction
- */
-function switche(channels, name, interaction) {
-  let ch = channels.find((c) => c.name.toLowerCase() === name.toLowerCase());
-  let charname = interaction.options.get("charname");
+bot.on("interactionCreate", async (interaction) => {
+  if (interaction.isChatInputCommand() && interaction.channel.isTextBased()) {
+    /**
+     *
+     * @param {Collection<string, GuildBasedChannel>} channels
+     * @param {string} name
+     */
 
-  let notIt = channels.filter((c) => c.id !== ch.id);
-
-  // Hewwo
-  if (ch) {
-    if (!charname) {
-      interaction.channel.send(
-        `${interaction.member.user} voyages vers <#${ch.id}>`
-      );
-    } else {
-      interaction.channel.send(`${charname.value} voyages vers <#${ch.id}>`);
-    }
-
-    ch.edit({
-      permissionOverwrites: [{ id: interaction.member, allow: "ViewChannel" }],
-    });
-
-    if (!ch.parent) {
-      ch.children.cache.forEach((ch) => {
+    function ov(bool, ch) {
+      if (bool) {
         ch.edit({
           permissionOverwrites: [
             { id: interaction.member, allow: "ViewChannel" },
           ],
         });
+      } else {
+        ch.edit({
+          permissionOverwrites: [
+            { id: interaction.member, deny: "ViewChannel" },
+          ],
+        });
+      }
+    }
+
+    function childOv(bool, chs) {
+      chs.forEach((ch) => {
+        ov(bool, ch);
       });
     }
 
-    notIt.forEach((ch) => {
-      ch.edit({
-        permissionOverwrites: [{ id: interaction.member, deny: "ViewChannel" }],
-      });
+    let role = await interaction.guild.roles.fetch("1091738601835986954");
 
-      if (!ch.parent) {
-        ch.children.cache.forEach((ch) => {
-          ch.edit({
-            permissionOverwrites: [
-              { id: interaction.member, deny: "ViewChannel" },
-            ],
-          });
-        });
-      }
-    });
-  } else {
-    interaction.reply({ content: "Salon introuvable", flags: ["Ephemeral"] });
-  }
-}
+    function children(id) {
+      return interaction.guild.channels.cache.filter((c) => c.parentId === id);
+    }
 
-bot.on("interactionCreate", async (interaction) => {
-  if (interaction.isChatInputCommand()) {
-    if (
-      interaction.guild.members.cache
-        .get(interaction.user.id)
-        .roles.cache.get("1091738601835986954")
-    ) {
+    if (role.members.get(interaction.user.id)) {
       if (interaction.commandName === "see") {
         let channels = bot.guilds.cache
           .get(guildID)
@@ -101,15 +76,29 @@ bot.on("interactionCreate", async (interaction) => {
           .filter((h) => !h.parent);
 
         let name = interaction.options.get("category", true).value;
+        let ch =
+          name === "Aléatoire"
+            ? channels.at(Math.floor(Math.random() * channels.size))
+            : channels.find((c) => c.name.toLowerCase() === name.toLowerCase());
 
-        if (name.toLowerCase() === "Aléatoire".toLowerCase()) {
-          switche(
-            channels,
-            channels.at([Math.floor(Math.random() * channels.size)]).name,
-            interaction
-          );
-        } else {
-          switche(channels, name, interaction);
+        if (typeof ch !== "undefined") {
+          let charname = interaction.options.get("charname");
+          let notIt = channels.filter((c) => c.id !== ch.id);
+          const usn = charname ? charname : interaction.member.user;
+
+          interaction.channel.send(`${usn} voyages vers <#${ch.id}>`);
+
+          ov(true, ch);
+          for (let [child_id, child] of children(ch.id)) {
+            ov(true, child);
+          }
+
+          notIt.forEach((ch) => {
+            ov(false, ch);
+            for (let [child_id, child] of children(ch.id)) {
+              ov(false, child);
+            }
+          });
         }
       }
     } else {
