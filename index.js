@@ -89,7 +89,11 @@ function switche(channels, name, interaction) {
 
 bot.on("interactionCreate", async (interaction) => {
   if (interaction.isChatInputCommand()) {
-    if (interaction.member.roles.cache.get("1091738601835986954")) {
+    if (
+      interaction.guild.members.cache
+        .get(interaction.user.id)
+        .roles.cache.get("1091738601835986954")
+    ) {
       if (interaction.commandName === "see") {
         let channels = bot.guilds.cache
           .get(guildID)
