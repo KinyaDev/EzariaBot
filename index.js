@@ -17,7 +17,13 @@ const {
   Client,
   SlashCommandBuilder,
   ActivityType,
+  ButtonComponent,
+  ButtonBuilder,
+  ButtonStyle,
+  ChannelType,
+  ActionRowBuilder,
 } = require("discord.js");
+const { celebrateButton } = require("./lib");
 
 const bot = new Client({
   intents: [
@@ -32,73 +38,107 @@ const bot = new Client({
 const guildID = "1042757971895128104";
 
 bot.on("interactionCreate", async (interaction) => {
-  if (interaction.isChatInputCommand() && interaction.channel.isTextBased()) {
-    /**
-     *
-     * @param {Collection<string, GuildBasedChannel>} channels
-     * @param {string} name
-     */
+  if (interaction.channel.isTextBased()) {
+    if (interaction.isButton() && interaction.customId === "celebratebtn") {
+      let celebratecount =
+        parseInt(
+          interaction.message.embeds[0].data.footer.text.split(" ")[0]
+        ) || 0;
 
-    function ov(bool, ch) {
-      if (bool) {
-        ch.edit({
-          permissionOverwrites: [
-            { id: interaction.member, allow: "ViewChannel" },
-          ],
-        });
-      } else {
-        ch.edit({
-          permissionOverwrites: [
-            { id: interaction.member, deny: "ViewChannel" },
-          ],
-        });
-      }
+      let embed = interaction.message.embeds[0];
+      interaction.message.edit({
+        embeds: [
+          {
+            thumbnail: embed.thumbnail.url,
+            author: {
+              name: embed.author.name,
+              icon_url: embed.author.iconURL,
+            },
+            title: embed.title,
+            description: embed.description,
+            footer: { text: `${celebratecount + 1} célèbrent votre venue!` },
+          },
+        ],
+        components: [celebrateButton],
+      });
     }
+    if (interaction.isChatInputCommand()) {
+      /**
+       *
+       * @param {Collection<string, GuildBasedChannel>} channels
+       * @param {string} name
+       */
 
-    let role = await interaction.guild.roles.fetch("1091738601835986954");
-
-    function children(id) {
-      return interaction.guild.channels.cache.filter((c) => c.parentId === id);
-    }
-
-    if (role.members.get(interaction.user.id)) {
-      if (interaction.commandName === "see") {
-        let channels = bot.guilds.cache
-          .get(guildID)
-          .channels.cache.filter((h) => !hrpChannels.includes(h.id))
-          .filter((h) => !h.parent);
-
-        let name = interaction.options.get("category", true).value;
-        let ch =
-          name === "Aléatoire"
-            ? channels.at(Math.floor(Math.random() * channels.size))
-            : channels.find((c) => c.name.toLowerCase() === name.toLowerCase());
-
-        if (typeof ch !== "undefined") {
-          let charname = interaction.options.get("charname");
-          let notIt = channels.filter((c) => c.id !== ch.id);
-          const usn = charname ? charname : interaction.member.user;
-
-          interaction.channel.send(`${usn} voyages vers <#${ch.id}>`);
-
-          ov(true, ch);
-          for (let [child_id, child] of children(ch.id)) {
-            ov(true, child);
-          }
-
-          notIt.forEach((ch) => {
-            ov(false, ch);
-            for (let [child_id, child] of children(ch.id)) {
-              ov(false, child);
-            }
+      function ov(bool, ch) {
+        if (bool) {
+          ch.edit({
+            permissionOverwrites: [
+              { id: interaction.member, allow: "ViewChannel" },
+            ],
+          });
+        } else {
+          ch.edit({
+            permissionOverwrites: [
+              { id: interaction.member, deny: "ViewChannel" },
+            ],
           });
         }
       }
-    } else {
-      interaction.reply({
-        content: "Tu n'es pas vérifié pour faire cela!",
-        flags: ["Ephemeral"],
-      });
+
+      let role = await interaction.guild.roles.fetch("1091738601835986954");
+
+      function children(id) {
+        return interaction.guild.channels.cache.filter(
+          (c) => c.parentId === id
+        );
+      }
+
+      if (role.members.get(interaction.user.id)) {
+        if (interaction.commandName === "see") {
+          let channels = bot.guilds.cache
+            .get(guildID)
+            .channels.cache.filter((h) => !hrpChannels.includes(h.id))
+            .filter((h) => !h.parent);
+
+          let name = interaction.options.get("category", true).value;
+          let ch =
+            name === "Aléatoire"
+              ? channels.at(Math.floor(Math.random() * channels.size))
+              : channels.find(
+                  (c) => c.name.toLowerCase() === name.toLowerCase()
+                );
+
+          if (typeof ch !== "undefined") {
+            let charname = interaction.options.get("charname");
+            let notIt = channels.filter((c) => c.id !== ch.id);
+            const usn = charname ? charname : interaction.member.user;
+
+            interaction.channel.send(`${usn} voyages vers <#${ch.id}>`);
+
+            ov(true, ch);
+            for (let [
+              child_id,
+              child,
+            ] of interaction.guild.channels.cache.filter(
+              (c) => c.parentId === ch.id
+            )) {
+              ov(true, child);
+            }
+
+            notIt.forEach((ch) => {
+              ov(false, ch);
+              for (let [child_id, child] of children(ch.id)) {
+                ov(false, child);
+              }
+            });
+          }
+        }
+      } else {
+        interaction.reply({
+          content: "Tu n'es pas vérifié pour faire cela!",
+          flags: ["Ephemeral"],
+        });
+      }
     }
   }
 });
@@ -153,6 +193,30 @@ bot.on("ready", async () => {
   }
 
   console.log("Connected");
+});
+
+bot.on("guildMemberAdd", async (member) => {
+  let welcomeChannel = await member.guild.channels.fetch("1049303180317569105");
+  if (welcomeChannel && welcomeChannel.type === ChannelType.GuildText) {
+    welcomeChannel.send({
+      embeds: [
+        {
+          title: `Bienvenue ${member.user}!`,
+          description: `Merci d'être venu! Nous sommes maintenant ${member.guild.memberCount}`,
+          thumbnail: member.avatarURL(),
+          author: {
+            name: member.displayName,
+            icon_url: member.avatarURL(),
+          },
+
+          footer: { text: `0 célèbrent votre venue!` },
+        },
+      ],
+      components: [
+        new ActionRowBuilder().addComponents(celebrateButton).toJSON(),
+      ],
+    });
+  }
 });
 
 bot.login(TOKEN);
