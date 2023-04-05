@@ -15,7 +15,8 @@ module.exports.data = new SlashCommandBuilder()
     option
       .setDescription("Category")
       .setName("category")
-      .addChoices(
+      .setRequired(true)
+      .setChoices(
         { value: "Plaines", name: "Plaines" },
         { value: "Forêt", name: "Forêt" },
         { value: "Ville", name: "Ville" },
@@ -25,10 +26,8 @@ module.exports.data = new SlashCommandBuilder()
         { value: "Ville Volante", name: "Ville Volante" },
         { value: "Jungle", name: "Jungle" },
         { value: "Désert", name: "Désert" },
-        { value: "Zone Gelée", name: "Zone Gelée" },
-        { value: "Aléatoire", name: "Aléatoire" }
+        { value: "Zone Gelée", name: "Zone Gelée" }
       )
-      .setRequired(true)
   )
   .addStringOption((option) =>
     option
@@ -36,6 +35,7 @@ module.exports.data = new SlashCommandBuilder()
       .setName("charname")
       .setRequired(false)
   );
+
 /**
  * @param {CommandInteraction} interaction
  */
@@ -73,10 +73,9 @@ module.exports.run = async (interaction) => {
         .filter((h) => !h.parent);
 
       let name = interaction.options.get("category", true).value;
-      let ch =
-        name === "Aléatoire"
-          ? channels.at(Math.floor(Math.random() * channels.size))
-          : channels.find((c) => c.name.toLowerCase() === name.toLowerCase());
+      let ch = channels.find(
+        (c) => c.name.toLowerCase() === name.toLowerCase()
+      );
 
       if (typeof ch !== "undefined") {
         let charname = interaction.options.get("charname");
