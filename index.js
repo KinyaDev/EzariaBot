@@ -1,25 +1,11 @@
-require("dotenv").config({ encoding: "" });
-
-const hrpChannels = [
-  "1042757971895128105",
-  "1049303180317569105",
-  "1049037836743094282",
-  "1049294575157653564",
-  "1049295564690432050",
-];
-
-const TOKEN = process.env.TOKEN;
-console.log(TOKEN);
+require("dotenv").config();
+const fs = require("fs");
 
 const {
   REST,
   Routes,
   Client,
-  SlashCommandBuilder,
   ActivityType,
-  ButtonComponent,
-  ButtonBuilder,
-  ButtonStyle,
   ChannelType,
   ActionRowBuilder,
 } = require("discord.js");
@@ -35,7 +21,22 @@ const bot = new Client({
   ],
 });
 
-const guildID = "1042757971895128104";
+const TOKEN = process.env.TOKEN;
+
+let commandFiles = fs
+  .readdirSync("./commands")
+  .filter((file) => file.endsWith(".js"));
+
+const commands = [];
+const interactions = [];
+bot.commands = new Map();
+
+for (const file of commandFiles) {
+  const command = require(`./commands/${file}`);
+  commands.push(command.data.toJSON());
+  interactions.push(command.run);
+  bot.commands.set(command.data.name, command);
+}
 
 bot.on("interactionCreate", async (interaction) => {
   if (interaction.channel.isTextBased()) {
@@ -45,168 +46,53 @@ bot.on("interactionCreate", async (interaction) => {
           interaction.message.embeds[0].data.footer.text.split(" ")[0]
         ) || 0;
 
-      let embed = interaction.message.embeds[0];
+      let embed = interaction.message.embeds[0].data;
       interaction.message.edit({
         embeds: [
           {
-            thumbnail: embed.thumbnail.url,
+            thumbnail: { url: embed.thumbnail.url },
             author: {
               name: embed.author.name,
-              icon_url: embed.author.iconURL,
+              icon_url: embed.author.icon_url,
             },
             title: embed.title,
             description: embed.description,
             footer: { text: `${celebratecount + 1} célèbrent votre venue!` },
           },
         ],
-        components: [celebrateButton],
+        components: [
+          new ActionRowBuilder().addComponents(celebrateButton).toJSON(),
+        ],
+      });
+
+      interaction.reply({
+        content: "Merci d'avoir souhaité la Bienvenue!",
+        flags: ["Ephemeral"],
       });
     }
     if (interaction.isChatInputCommand()) {
-      /**
-       *
-       * @param {Collection<string, GuildBasedChannel>} channels
-       * @param {string} name
-       */
-
-      function ov(bool, ch) {
-        if (bool) {
-          ch.edit({
-            permissionOverwrites: [
-              { id: interaction.member, allow: "ViewChannel" },
-            ],
-          });
-        } else {
-          ch.edit({
-            permissionOverwrites: [
-              { id: interaction.member, deny: "ViewChannel" },
-            ],
-          });
-        }
-      }
-
-      let role = await interaction.guild.roles.fetch("1091738601835986954");
-
-      function children(id) {
-        return interaction.guild.channels.cache.filter(
-          (c) => c.parentId === id
-        );
-      }
-
-      if (role.members.get(interaction.user.id)) {
-        if (interaction.commandName === "see") {
-          let channels = bot.guilds.cache
-            .get(guildID)
-            .channels.cache.filter((h) => !hrpChannels.includes(h.id))
-            .filter((h) => !h.parent);
-
-          let name = interaction.options.get("category", true).value;
-          let ch =
-            name === "Aléatoire"
-              ? channels.at(Math.floor(Math.random() * channels.size))
-              : channels.find(
-                  (c) => c.name.toLowerCase() === name.toLowerCase()
-                );
-
-          if (typeof ch !== "undefined") {
-            let charname = interaction.options.get("charname");
-            let notIt = channels.filter((c) => c.id !== ch.id);
-            const usn = charname ? charname : interaction.member.user;
-
-            interaction.channel.send(`${usn} voyages vers <#${ch.id}>`);
-
-            ov(true, ch);
-            for (let [
-              child_id,
-              child,
-            ] of interaction.guild.channels.cache.filter(
-              (c) => c.parentId === ch.id
-            )) {
-              ov(true, child);
-            }
-
-            notIt.forEach((ch) => {
-              ov(false, ch);
-              for (let [child_id, child] of children(ch.id)) {
-                ov(false, child);
-              }
-            });
-          }
-        }
-      } else {
-        interaction.reply({
-          content: "Tu n'es pas vérifié pour faire cela!",
-          flags: ["Ephemeral"],
-        });
-      }
+      interactions.forEach((c) => c(interaction));
     }
   }
 });
 
-bot.on("ready", async () => {
-  bot.user.setActivity({
-    name: "Je vous fais voyager dans Ezaria!",
-    type: ActivityType.Listening,
-  });
-
-  let command = new SlashCommandBuilder()
-    .setName("see")
-    .setDescription("Get access to a category using its name")
-    .addStringOption((option) =>
-      option
-        .setDescription("Category")
-        .setName("category")
-        .addChoices(
-          { value: "Plaines", name: "Plaines" },
-          { value: "Forêt", name: "Forêt" },
-          { value: "Ville", name: "Ville" },
-          { value: "Hôtel", name: "Hôtel" },
-          { value: "Montagnes", name: "Montagnes" },
-          { value: "Îles Volantes", name: "Îles Volantes" },
-          { value: "Ville Volante", name: "Ville Volante" },
-          { value: "Jungle", name: "Jungle" },
-          { value: "Désert", name: "Désert" },
-          { value: "Zone Gelée", name: "Zone Gelée" },
-          { value: "Aléatoire", name: "Aléatoire" }
-        )
-        .setRequired(true)
-    )
-    .addStringOption((option) =>
-      option
-        .setDescription("Character Name")
-        .setName("charname")
-        .setRequired(false)
-    );
-
-  const rest = new REST({ version: "10" }).setToken(TOKEN);
-
-  try {
-    console.log("Started refreshing application (/) commands.");
-
-    await rest.put(Routes.applicationCommands("1090661085884981408"), {
-      body: [command],
-    });
-
-    console.log("Successfully reloaded application (/) commands.");
-  } catch (error) {
-    console.error(error);
-  }
-
-  console.log("Connected");
-});
-
 bot.on("guildMemberAdd", async (member) => {
-  let welcomeChannel = await member.guild.channels.fetch("1049303180317569105");
+  let welcomeChannel = await member.guild.channels.fetch(
+    process.env.WELCOME_CHANNEL_ID
+  );
   if (welcomeChannel && welcomeChannel.type === ChannelType.GuildText) {
     welcomeChannel.send({
       embeds: [
         {
-          title: `Bienvenue ${member.user}!`,
-          description: `Merci d'être venu! Nous sommes maintenant ${member.guild.memberCount}`,
-          thumbnail: member.avatarURL(),
+          title: `Bienvenue ${member.user.username} !`,
+          description: `Merci d'être venu! Nous sommes maintenant ${
+            member.guild.memberCount -
+            member.guild.members.cache.filter((f) => f.user.bot).size
+          }`,
+          thumbnail: { url: member.user.avatarURL() || member.avatarURL() },
           author: {
-            name: member.displayName,
-            icon_url: member.avatarURL(),
+            name: member.user.username,
+            icon_url: member.user.avatarURL() || member.avatarURL(),
           },
 
           footer: { text: `0 célèbrent votre venue!` },
@@ -217,6 +103,40 @@ bot.on("guildMemberAdd", async (member) => {
       ],
     });
   }
+});
+
+bot.on("ready", async () => {
+  bot.user.setActivity({
+    name: "Je vous fais voyager dans Ezaria!",
+    type: ActivityType.Listening,
+  });
+
+  const rest = new REST({ version: "10" }).setToken(TOKEN);
+
+  (async () => {
+    try {
+      if (process.env.ENV === "production") {
+        await rest.put(Routes.applicationCommands(bot.user.id), {
+          body: commands,
+        });
+
+        console.log("Successfully Registered Commands");
+      } else {
+        await rest.put(
+          Routes.applicationCommands(bot.user.id, process.env.GUILD_ID),
+          {
+            body: commands,
+          }
+        );
+
+        console.log("Successfully Registered Commands");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  })();
+
+  console.log("Connected");
 });
 
 bot.login(TOKEN);
