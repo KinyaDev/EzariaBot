@@ -40,69 +40,44 @@ module.exports.data = new SlashCommandBuilder()
  * @param {CommandInteraction} interaction
  */
 module.exports.run = async (interaction) => {
-  /**
-   *
-   * @param {Collection<string, GuildBasedChannel>} channels
-   * @param {string} name
-   */
-
   function ov(bool, ch) {
-    if (bool) {
-      ch.edit({
-        permissionOverwrites: [
-          { id: interaction.member, allow: "ViewChannel" },
-        ],
-      });
-    } else {
-      ch.edit({
-        permissionOverwrites: [{ id: interaction.member, deny: "ViewChannel" }],
-      });
-    }
+    ch.permissionOverwrites.create(interaction.member, { ViewChannel: bool });
   }
-
-  let role = await interaction.guild.roles.fetch(process.env.VERIFIED_ROLE_ID);
-
   function children(id) {
     return interaction.guild.channels.cache.filter((c) => c.parentId === id);
   }
 
-  if (role.members.get(interaction.user.id)) {
-    if (interaction.commandName === "see") {
-      let channels = interaction.guild.channels.cache
-        .filter((h) => !hrpChannels.includes(h.id))
-        .filter((h) => !h.parent);
+  let role = await interaction.guild.roles.fetch(process.env.VERIFIED_ROLE_ID);
 
-      let name = interaction.options.get("category", true).value;
-      let ch = channels.find(
-        (c) => c.name.toLowerCase() === name.toLowerCase()
-      );
-
-      if (typeof ch !== "undefined") {
-        let charname = interaction.options.get("charname");
-        let notIt = channels.filter((c) => c.id !== ch.id);
-        const usn = charname ? charname : interaction.member.user;
-
-        interaction.channel.send(`${usn} voyages vers <#${ch.id}>`);
-
-        ov(true, ch);
-        for (let [child_id, child] of interaction.guild.channels.cache.filter(
-          (c) => c.parentId === ch.id
-        )) {
-          ov(true, child);
-        }
-
-        notIt.forEach((ch) => {
-          ov(false, ch);
-          for (let [child_id, child] of children(ch.id)) {
-            ov(false, child);
-          }
-        });
-      }
-    }
-  } else {
-    interaction.reply({
+  if (!role.members.get(interaction.user.id))
+    return interaction.reply({
       content: "Tu n'es pas vérifié pour faire cela!",
       flags: ["Ephemeral"],
     });
+
+  let channels = (await interaction.guild.channels.fetch())
+    .filter((h) => !hrpChannels.includes(h.id))
+    .filter((h) => !h.parent);
+
+  let name = interaction.options.get("category", true).value;
+  let ch = channels.find((c) => c.name.toLowerCase() === name.toLowerCase());
+
+  if (!ch) return;
+  let charname = interaction.options.get("charname");
+  let notIt = channels.filter((c) => c.id !== ch.id);
+  const usn = charname ? charname : interaction.member.user;
+
+  interaction.channel.send(`${usn} voyages vers <#${ch.id}>`);
+
+  ov(true, ch);
+  for (let [child_id, child] of children(ch.id)) {
+    ov(true, child);
   }
+
+  notIt.forEach((ch) => {
+    ov(false, ch);
+    for (let [child_id, child] of children(ch.id)) {
+      ov(false, child);
+    }
+  });
 };
