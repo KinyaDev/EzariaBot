@@ -22,8 +22,5 @@
     "url": "https://github.com/KinyaDev/EzariaBot/issues"
   },
   "homepage": "https://github.com/KinyaDev/EzariaBot#readme",
-  "description": "",
-  "engines": {
-    "node": "12.x"
-  }
+  "description": ""
 }

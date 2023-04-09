@@ -1,15 +1,17 @@
-require("dotenv").config();
 const fs = require("fs");
-const { Client, PermissionFlagsBits } = require("discord.js");
+const { Client } = require("discord.js");
+const { TOKEN } = require("./credentials.json");
 
 const bot = new Client({
   intents: [
     "GuildMembers",
+    "GuildMessageReactions",
     "GuildMessages",
+    "MessageContent",
     "Guilds",
     "MessageContent",
-    "GuildIntegrations",
   ],
+  partials: ["MESSAGE", "CHANNEL", "REACTION"],
 });
 
 let commandFiles = fs
@@ -63,8 +65,51 @@ bot.on("interactionCreate", async (interaction) => {
   }
 });
 
+bot.on("messageReactionRemove", async (reaction, user) => {
+  if (reaction.message.channel.id === "1094634138646093925" && !user.bot) {
+    let authorId = reaction.message.embeds[0].footer.text;
+    let author = await reaction.message.guild.members.fetch(authorId);
+    let guildReactor = await reaction.message.guild.members.fetch(user.id);
+    let role = await reaction.message.guild.roles.fetch("1091738601835986954");
+    let realCount = reaction.users.cache.has(authorId)
+      ? reaction.count - 2
+      : reaction.count - 1;
+
+    if (reaction.emoji.name === "✅") {
+      if (guildReactor.permissions.has("Administrator")) {
+        author.roles.remove(role);
+      } else if (realCount < 8) author.roles.remove(role);
+    }
+  }
+});
+
+bot.on("messageReactionAdd", async (reaction, user) => {
+  if (reaction.message.channel.id === "1094634138646093925" && !user.bot) {
+    let authorId = reaction.message.embeds[0].footer.text;
+    let author = await reaction.message.guild.members.fetch(authorId);
+    let guildReactor = await reaction.message.guild.members.fetch(user.id);
+    let role = await reaction.message.guild.roles.fetch("1091738601835986954");
+    let realCount = reaction.users.cache.has(authorId)
+      ? reaction.count - 2
+      : reaction.count - 1;
+
+    if (reaction.emoji.name === "✅") {
+      if (guildReactor.permissions.has("Administrator")) {
+        author.roles.add(role);
+      } else if (realCount >= 8) author.roles.add(role);
+    }
+
+    if (reaction.emoji.name === "❌") {
+      if (guildReactor.permissions.has("Administrator") && author.kickable) {
+        author.kick("Pas accepté par les modérateurs");
+      } else if (realCount >= 8 && author.kickable)
+        author.kick("Pas accepté par les modérateurs");
+    }
+  }
+});
+
 bot.events.forEach((v, k) => {
   bot.on(k, v);
 });
 
-bot.login(process.env.TOKEN);
+bot.login(TOKEN);

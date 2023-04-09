@@ -1,7 +1,5 @@
 const { SlashCommandBuilder, CommandInteraction } = require("discord.js");
-require("dotenv").config();
-const linked_places = require("./linked_places.json");
-const RPChannels = Object.keys(linked_places);
+const { logId } = require("../ids");
 
 module.exports.data = new SlashCommandBuilder()
   .setName("seek")
@@ -19,9 +17,7 @@ module.exports.run = async (interaction) => {
 
   let channelId = interaction.channel.id;
   let parentId = interaction.channel.parentId;
-  let logchannel = await interaction.guild.channels.fetch(
-    process.env.LOG_CHANNEL_ID
-  );
+  let logchannel = await interaction.guild.channels.fetch(logId);
 
   if (
     channelId === "1049028357565710408" ||

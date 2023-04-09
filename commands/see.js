@@ -110,7 +110,7 @@ module.exports.run = async (interaction) => {
     });
   } else {
     interaction.reply({
-      content: `Une erreur est survenue! <#${ch.id}>`,
+      content: `Une erreur est survenue!`,
       flags: ["Ephemeral"],
     });
   }

@@ -1,6 +1,5 @@
 const { SlashCommandBuilder, CommandInteraction } = require("discord.js");
-
-require("dotenv").config();
+const { suggestId } = require("../ids");
 
 module.exports.data = new SlashCommandBuilder()
   .setName("suggest")
@@ -16,7 +15,7 @@ module.exports.data = new SlashCommandBuilder()
  * @param {CommandInteraction} interaction
  */
 module.exports.run = async (interaction) => {
-  if (interaction.channelId === process.env.SUGGEST_ID) {
+  if (suggestId.includes(interaction.channelId)) {
     interaction.channel.send({
       embeds: [
         {
@@ -25,27 +24,7 @@ module.exports.run = async (interaction) => {
             icon_url: interaction.user.avatarURL(),
           },
 
-          title: `${interaction.user.username} suggère pour le bot...`,
-          thumbnail: { url: interaction.user.avatarURL() },
-          description: `${interaction.options.get("suggestion").value}`,
-          footer: {
-            text: interaction.options.get("about")
-              ? `A propos de: ${interaction.options.get("about").value}`
-              : ".",
-          },
-        },
-      ],
-    });
-  }
-  if (interaction.channelId === process.env.SUGGEST_ID2) {
-    interaction.channel.send({
-      embeds: [
-        {
-          author: {
-            name: interaction.user.username,
-            icon_url: interaction.user.avatarURL(),
-          },
-          title: `${interaction.user.username} suggère pour le serveur...`,
+          title: `${interaction.user.username} suggère pour...`,
           thumbnail: { url: interaction.user.avatarURL() },
           description: `${interaction.options.get("suggestion").value}`,
           footer: {

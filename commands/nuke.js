@@ -6,7 +6,7 @@ const {
 
 module.exports.data = new SlashCommandBuilder()
   .setName("nuke")
-  .setDescription("reset channel message (alias: nuke)")
+  .setDescription("réinitialiser un salon")
   .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
 
 /**

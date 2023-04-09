@@ -1,8 +1,6 @@
 const { Client, REST, Routes, ActivityType } = require("discord.js");
 const fs = require("fs");
-const path = require("path");
-require("dotenv").config();
-
+const { TOKEN } = require("../credentials.json");
 /**
  *
  * @param {Client} bot
@@ -26,26 +24,15 @@ module.exports = async (bot) => {
     type: ActivityType.Listening,
   });
 
-  const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
+  const rest = new REST({ version: "10" }).setToken(TOKEN);
 
   (async () => {
     try {
-      if (process.env.ENV === "production") {
-        await rest.put(Routes.applicationCommands(bot.user.id), {
-          body: commands,
-        });
+      await rest.put(Routes.applicationCommands(bot.user.id), {
+        body: commands,
+      });
 
-        console.log("Successfully Registered Commands");
-      } else {
-        await rest.put(
-          Routes.applicationCommands(bot.user.id, process.env.GUILD_ID),
-          {
-            body: commands,
-          }
-        );
-
-        console.log("Successfully Registered Commands");
-      }
+      console.log("Successfully Registered Commands");
     } catch (e) {
       console.error(e);
     }

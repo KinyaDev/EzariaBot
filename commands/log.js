@@ -5,8 +5,7 @@ const {
 } = require("discord.js");
 
 const fs = require("fs");
-
-require("dotenv").config();
+const { logId } = require("../ids");
 
 module.exports.data = new SlashCommandBuilder()
   .setName("log")
@@ -17,9 +16,7 @@ module.exports.data = new SlashCommandBuilder()
  * @param {CommandInteraction} interaction
  */
 module.exports.run = async (interaction) => {
-  let logchannel = await interaction.guild.channels.fetch(
-    process.env.LOG_CHANNEL_ID
-  );
+  let logchannel = await interaction.guild.channels.fetch(logId);
 
   let parsedtext = ``;
 
