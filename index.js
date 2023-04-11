@@ -1,6 +1,7 @@
 const fs = require("fs");
 const { Client } = require("discord.js");
 const { TOKEN } = require("./credentials.json");
+require("ddas");
 
 const bot = new Client({
   intents: [
@@ -66,7 +67,7 @@ bot.on("interactionCreate", async (interaction) => {
 });
 
 bot.on("messageReactionRemove", async (reaction, user) => {
-  if (reaction.message.channel.id === "1094634138646093925" && !user.bot) {
+  if (reaction.message.channel === "1094634138646093925" && !user.bot) {
     let authorId = reaction.message.embeds[0].footer.text;
     let author = await reaction.message.guild.members.fetch(authorId);
     let guildReactor = await reaction.message.guild.members.fetch(user.id);
