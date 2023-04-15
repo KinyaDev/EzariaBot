@@ -1,5 +1,4 @@
-const { GuildMember, ActionRowBuilder, ChannelType } = require("discord.js");
-const { celebrateButton } = require("../lib");
+const { GuildMember, ChannelType } = require("discord.js");
 const { welcomeId } = require("../ids");
 
 /**
@@ -23,9 +22,6 @@ module.exports = async (member) => {
             icon_url: member.user.avatarURL() || member.avatarURL(),
           },
         },
-      ],
-      components: [
-        new ActionRowBuilder().addComponents(celebrateButton).toJSON(),
       ],
     });
   }

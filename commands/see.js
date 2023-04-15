@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, CommandInteraction } = require("discord.js");
 
 const linked_places = require("./linked_places.json");
+const { verifiyId } = require("../ids");
 const RPChannels = Object.keys(linked_places);
 
 /**
@@ -9,22 +10,25 @@ const RPChannels = Object.keys(linked_places);
  */
 async function isLinked(interaction, id) {
   let ret = false;
-  if (
-    interaction.channel.isTextBased() &&
-    RPChannels.includes(interaction.channel.parent.id)
-  ) {
-    /**
-     * @type {string[]}
-     */
-    let linked = linked_places[interaction.channel.parent.id];
-    let channels = (await interaction.guild.channels.fetch())
-      .filter((ch) => RPChannels.includes(ch.id))
-      .filter((c) => !c.parent)
-      .filter((c) => linked.includes(c.id));
 
-    console.log(channels);
+  if (interaction.member.permissions.has("Administrator")) {
+    ret = true;
+  } else {
+    if (
+      interaction.channel.isTextBased() &&
+      RPChannels.includes(interaction.channel.parent.id)
+    ) {
+      /**
+       * @type {string[]}
+       */
+      let linked = linked_places[interaction.channel.parent.id];
+      let channels = (await interaction.guild.channels.fetch())
+        .filter((ch) => RPChannels.includes(ch.id))
+        .filter((c) => !c.parent)
+        .filter((c) => linked.includes(c.id));
 
-    if (channels.find((c) => c.id === id)) ret = true;
+      if (channels.find((c) => c.id === id)) ret = true;
+    }
   }
 
   return ret;
@@ -89,7 +93,7 @@ module.exports.data = new SlashCommandBuilder()
  * @param {CommandInteraction} interaction
  */
 module.exports.run = async (interaction) => {
-  let role = await interaction.guild.roles.fetch(process.env.VERIFIED_ROLE_ID);
+  let role = await interaction.guild.roles.fetch(verifiyId);
 
   if (!role.members.get(interaction.user.id))
     return interaction.reply({

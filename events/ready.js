@@ -1,6 +1,5 @@
 const { Client, REST, Routes, ActivityType } = require("discord.js");
 const fs = require("fs");
-const { TOKEN } = require("../credentials.json");
 /**
  *
  * @param {Client} bot
@@ -24,7 +23,7 @@ module.exports = async (bot) => {
     type: ActivityType.Listening,
   });
 
-  const rest = new REST({ version: "10" }).setToken(TOKEN);
+  const rest = new REST({ version: "10" }).setToken(bot.token);
 
   (async () => {
     try {

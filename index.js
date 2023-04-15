@@ -1,7 +1,7 @@
 const fs = require("fs");
 const { Client } = require("discord.js");
-const { TOKEN } = require("./credentials.json");
-require("ddas");
+const { accessId, verifiyId } = require("./ids");
+require("dotenv").config();
 
 const bot = new Client({
   intents: [
@@ -66,45 +66,70 @@ bot.on("interactionCreate", async (interaction) => {
   }
 });
 
+function accept(bool, author, channel) {
+  if (bool) {
+    channel.send(`<@${author.id}>, vous avez été accepté dans le serveur`);
+  } else {
+    channel.send(`<@${author.id}> n'a pas été accepté`);
+  }
+}
+
+function cancelVerif(author, channel) {
+  channel.send(`<@${author.id}>, votre vérifiction a été annulé`);
+}
+
 bot.on("messageReactionRemove", async (reaction, user) => {
-  if (reaction.message.channel === "1094634138646093925" && !user.bot) {
+  if (reaction.message.channel.id === accessId && !user.bot) {
     let authorId = reaction.message.embeds[0].footer.text;
     let author = await reaction.message.guild.members.fetch(authorId);
     let guildReactor = await reaction.message.guild.members.fetch(user.id);
-    let role = await reaction.message.guild.roles.fetch("1091738601835986954");
+    let role = await reaction.message.guild.roles.fetch(verifiyId);
     let realCount = reaction.users.cache.has(authorId)
       ? reaction.count - 2
       : reaction.count - 1;
 
     if (reaction.emoji.name === "✅") {
-      if (guildReactor.permissions.has("Administrator")) {
+      if (guildReactor.permissions.has("Administrator", true)) {
         author.roles.remove(role);
-      } else if (realCount < 8) author.roles.remove(role);
+        cancelVerif(author, reaction.message.channel);
+      } else if (realCount < 8) {
+        author.roles.remove(role);
+        cancelVerif(author, reaction.message.channel);
+      }
     }
   }
 });
 
 bot.on("messageReactionAdd", async (reaction, user) => {
-  if (reaction.message.channel.id === "1094634138646093925" && !user.bot) {
+  if (reaction.message.channel.id === accessId && !user.bot) {
     let authorId = reaction.message.embeds[0].footer.text;
     let author = await reaction.message.guild.members.fetch(authorId);
     let guildReactor = await reaction.message.guild.members.fetch(user.id);
-    let role = await reaction.message.guild.roles.fetch("1091738601835986954");
+    let role = await reaction.message.guild.roles.fetch(verifiyId);
     let realCount = reaction.users.cache.has(authorId)
       ? reaction.count - 2
       : reaction.count - 1;
 
     if (reaction.emoji.name === "✅") {
-      if (guildReactor.permissions.has("Administrator")) {
+      if (guildReactor.permissions.has("Administrator", true)) {
         author.roles.add(role);
-      } else if (realCount >= 8) author.roles.add(role);
+        accept(true, author, reaction.message.channel);
+      } else if (realCount >= 8) {
+        author.roles.add(role);
+        accept(true, author, reaction.message.channel);
+      }
     }
 
     if (reaction.emoji.name === "❌") {
-      if (guildReactor.permissions.has("Administrator") && author.kickable) {
-        author.kick("Pas accepté par les modérateurs");
-      } else if (realCount >= 8 && author.kickable)
-        author.kick("Pas accepté par les modérateurs");
+      if (guildReactor.permissions.has("Administrator", true)) {
+        reaction.message.delete();
+        accept(false, author, reaction.message.channel);
+        if (author.kickable) author.kick("Pas accepté par les modérateurs");
+      } else if (realCount >= 8) {
+        reaction.message.delete();
+        accept(false, author, reaction.message.channel);
+        if (author.kickable) author.kick("Pas accepté par les modérateurs");
+      }
     }
   }
 });
@@ -113,4 +138,4 @@ bot.events.forEach((v, k) => {
   bot.on(k, v);
 });
 
-bot.login(TOKEN);
+bot.login(process.env.TOKEN);
