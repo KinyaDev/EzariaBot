@@ -21,22 +21,12 @@ let commandFiles = fs
 
 const commands = [];
 bot.commands = new Map();
-bot.interactions = new Map();
 bot.events = new Map();
 
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
   commands.push(command.data.toJSON());
   bot.commands.set(command.data.name, command);
-}
-
-let interactionFiles = fs
-  .readdirSync("./interactions")
-  .filter((file) => file.endsWith(".js"));
-
-for (const file of interactionFiles) {
-  const interaction = require(`./interactions/${file}`);
-  bot.interactions.set(file.replace(".js", ""), interaction);
 }
 
 let eventFiles = fs
@@ -55,13 +45,6 @@ bot.on("interactionCreate", async (interaction) => {
       if (!command) return;
 
       await command.run(interaction);
-    }
-
-    if (interaction.isButton()) {
-      let interac = bot.interactions.get(interaction.customId);
-      if (!interac) return;
-
-      interac(interaction);
     }
   }
 });
