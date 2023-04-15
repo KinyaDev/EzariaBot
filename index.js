@@ -1,6 +1,9 @@
 const fs = require("fs");
 const { Client } = require("discord.js");
 const { accessId, verifiyId } = require("./ids");
+const express = require("express");
+const app = express();
+
 require("dotenv").config();
 
 const bot = new Client({
@@ -121,4 +124,9 @@ bot.events.forEach((v, k) => {
   bot.on(k, v);
 });
 
+app.get("/", async (req, res) => {
+  return res.send("Follow documentation ");
+});
+
+app.listen(process.env.PORT || 3000);
 bot.login(process.env.TOKEN);
