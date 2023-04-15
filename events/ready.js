@@ -1,5 +1,6 @@
 const { Client, REST, Routes, ActivityType } = require("discord.js");
 const fs = require("fs");
+require("dotenv").config();
 /**
  *
  * @param {Client} bot
@@ -23,7 +24,7 @@ module.exports = async (bot) => {
     type: ActivityType.Listening,
   });
 
-  const rest = new REST({ version: "10" }).setToken(bot.token);
+  const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
 
   (async () => {
     try {
