@@ -1,3 +1,5 @@
+// This is thought to be able to find dungeons
+
 const { SlashCommandBuilder, CommandInteraction } = require("discord.js");
 const { logId } = require("../ids");
 
@@ -19,12 +21,15 @@ module.exports.run = async (interaction) => {
   let parentId = interaction.channel.parentId;
   let logchannel = await interaction.guild.channels.fetch(logId);
 
+  // The chances of finding a dungeons can vary dépending of the category or channel
+
   if (
     channelId === "1049028357565710408" ||
     channelId === "1049293722203979876"
   ) {
     if (d < 0.5) {
       for (let [child_id, child] of children(parentId)) {
+        // If it's a dungeons
         if (child.name.includes("❓")) {
           child.permissionOverwrites.create(interaction.member, {
             ViewChannel: true,

@@ -1,3 +1,4 @@
+// Simply copy paste to create a new command
 const { SlashCommandBuilder, CommandInteraction } = require("discord.js");
 
 module.exports.data = new SlashCommandBuilder()

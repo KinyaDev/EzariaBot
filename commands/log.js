@@ -1,3 +1,6 @@
+// Save the channel conversation in a text document that is sent in the log channel
+// WARNING : FILESYTEM WRITE PERMISSION
+
 const {
   SlashCommandBuilder,
   CommandInteraction,

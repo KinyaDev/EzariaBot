@@ -1,3 +1,6 @@
+// You can change the name of this command,
+// but it's like the see command but admins can cange view category of any members
+
 const {
   SlashCommandBuilder,
   CommandInteraction,

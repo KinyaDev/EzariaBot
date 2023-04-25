@@ -9,6 +9,8 @@ const RPChannels = Object.keys(linked_places);
  * @param {string} id
  */
 async function isLinked(interaction, id) {
+  // Verify in the ./linked_places.json if the interaction.channel.id
+  // is linked (contains in the array) to the chosen id
   let ret = false;
 
   if (interaction.member.permissions.has("Administrator")) {

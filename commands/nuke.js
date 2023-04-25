@@ -1,3 +1,5 @@
+// Reset completly a channel (WARNING : THE CHANNEL ID CHANGES)
+
 const {
   SlashCommandBuilder,
   CommandInteraction,

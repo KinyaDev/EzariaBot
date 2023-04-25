@@ -1,3 +1,5 @@
+// Welcome message
+
 const { GuildMember, ChannelType } = require("discord.js");
 const { welcomeId } = require("../ids");
 
@@ -12,10 +14,7 @@ module.exports = async (member) => {
       embeds: [
         {
           title: `Bienvenue ${member.user.username} !`,
-          description: `Merci d'être venu! Nous sommes maintenant ${
-            member.guild.memberCount -
-            member.guild.members.cache.filter((f) => f.user.bot).size
-          }`,
+          description: `Merci d'être venu! Nous sommes maintenant ${member.guild.memberCount}`,
           thumbnail: { url: member.user.avatarURL() || member.avatarURL() },
           author: {
             name: member.user.username,

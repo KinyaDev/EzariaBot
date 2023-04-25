@@ -1,4 +1,7 @@
+// Suggest command
+
 const { SlashCommandBuilder, CommandInteraction } = require("discord.js");
+// Suggestion channel ID
 const { suggestId } = require("../ids");
 
 module.exports.data = new SlashCommandBuilder()
@@ -16,6 +19,11 @@ module.exports.data = new SlashCommandBuilder()
  */
 module.exports.run = async (interaction) => {
   if (suggestId.includes(interaction.channelId)) {
+    // Optional Theme in the footer of the embed
+    let footer = interaction.options.get("about")
+      ? { text: `A propos de: ${interaction.options.get("about").value}` }
+      : undefined;
+
     interaction.channel.send({
       embeds: [
         {
@@ -27,11 +35,7 @@ module.exports.run = async (interaction) => {
           title: `${interaction.user.username} suggère pour...`,
           thumbnail: { url: interaction.user.avatarURL() },
           description: `${interaction.options.get("suggestion").value}`,
-          footer: {
-            text: interaction.options.get("about")
-              ? `A propos de: ${interaction.options.get("about").value}`
-              : ".",
-          },
+          footer: footer,
         },
       ],
     });
